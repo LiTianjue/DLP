@@ -5,6 +5,8 @@ import json
 import sys
 import socket
 import re
+import os
+import threading
 
 
 print "开始"
@@ -31,7 +33,7 @@ class JsonHelper:
 
 
 #########################################################
-
+g_cfg_helper = JsonHelper(dlp_config_file)
 
 
 #########################################################
@@ -42,10 +44,18 @@ class LogHelper:
 		pass
 	def AddElement(self,name,value):
 		self.logmsgdict[name] = value
+	def DelElement(self,name):
+		del self.logmsgdict[name]
+	def GetElement(self,name):
+		return self.logmsgdict[name]
 	def clearElement(self):
 		self.logmsgdict.clear()
 	def getJsonOutput(self):
 		return  json.dumps(self.logmsgdict)
+	def updateDict(self,data):
+		self.logmsgdict.update(data)
+
+
 
 #########################################################
 
@@ -70,15 +80,7 @@ class LogSender:
 
 #########################################################
 
-
-
-
-#########################################################
-# unix-socket 类，用于进程之间进行通讯
-
-
-#########################################################
-
+g_logsender = LogSender(g_cfg_helper.getTopElement("syslog-ip"), int(g_cfg_helper.getTopElement("syslog-port")))
 
 
 #########################################################
@@ -88,7 +90,8 @@ class DataMatchTool:
 	def __init__(self,rulefile,protol):
 		self.protol = protol
 		with open(rulefile,'r') as f:
-			self.data = json.load(f)
+			undecoddata = json.dumps(json.load(f))
+			self.data = json.loads(undecoddata.decode("utf-8"))
 	
 
 class HttpMatcher(DataMatchTool):
@@ -131,32 +134,91 @@ class HttpMatcher(DataMatchTool):
 			for i in range(len(self.html_rule_list)):
 				match = re.search(self.html_rule_list[i]["key"], str)
 				if match :
-					return self.html_rule_list
+					return self.html_rule_list[i]
 	def matchXML(self,xmlfile):
 		with open(xmlfile,'r') as f:
 			str = f.read()	
 			for i in range(len(self.xml_rule_list)):
 				match = re.search(self.xml_rule_list[i]["key"], str)
 				if match :
-					return self.xml_rule_list
+					return self.xml_rule_list[i]
+	def matchALlType(self,source,type):
+		if type=="uri":
+			return self.matchURI(source)
+		elif type=="html":
+			return self.matchHTML(source)
+		elif type=="xml":
+			return self.matchXML(source)
 
 #########################################################
+g_httpMatcher = HttpMatcher(http_config_file)
 
-
+###########################################################
 
 
 #########################################################
 #unix socket
+dlp_socket = "/tmp/dlp.sock"
 
+class SyslogServer:
+	def __init__(self,socket_name):
+		self.sock_file = socket_name
+		self.server_socket = socket.socket(socket.AF_UNIX,socket.SOCK_STREAM)
+		self.server_socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+		self.server_socket.bind(socket_name)
+		self.server_socket.listen(1)
+
+	def handler(self,connection):
+		while True:
+			data = connection.recv(1024)
+			if not data:
+				return False
+			else:
+				print data
+			jdata = json.loads(data)
+			print type(jdata)
+			self.handlerData(jdata)
+
+	def handlerData(self,data):
+		logtype = data["protocol"]
+		logrule = data["rule"]
+		logsource = data["source"]
+		del data["source"]
+		logdata = LogHelper(logtype)
+		logdata.updateDict(data)
+		if not logsource:
+			return False
+
+		if logtype=="http":
+			retdict = g_httpMatcher.matchALlType(logsource, logrule)
+			if retdict:
+				logdata.updateDict(retdict)
+				self.sendLog(logdata)
+
+	def sendLog(self,logdata):
+		level = logdata.GetElement("level")
+		logdata.DelElement("level")
+		print logdata.getJsonOutput()
+		g_logsender.log(logdata.getJsonOutput().decode('utf-8'),1)
+
+
+
+	def run(self):
+		while True:
+			try :
+				connection,client_address = self.server_socket.accept()
+				threading.Thread(target=self.handler,args=(connection,)).start()
+			except KeyboardInterrupt:
+				break
+
+	def __del__(self):
+		self.server_socket.close()
+		os.remove(self.sock_file)
 
 
 
 
 
 if __name__ == "__main__":
-	m_httpmatcher = HttpMatcher(http_config_file)
-	# m_httpmatcher.printRuleList()
-	print m_httpmatcher.matchURI("Userlogin")
-	print type(m_httpmatcher.matchURI("login"))
-
-	print m_httpmatcher.matchHTML("sslvpn.html")
+	app = SyslogServer(dlp_socket)
+	app.run()
