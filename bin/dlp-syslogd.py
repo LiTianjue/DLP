@@ -8,6 +8,8 @@ import re
 import os
 import threading
 
+reload(sys)
+sys.setdefaultencoding("utf8")
 
 print "开始"
 
@@ -51,7 +53,7 @@ class LogHelper:
 	def clearElement(self):
 		self.logmsgdict.clear()
 	def getJsonOutput(self):
-		return  json.dumps(self.logmsgdict)
+		return  json.dumps(self.logmsgdict,ensure_ascii=False)
 	def updateDict(self,data):
 		self.logmsgdict.update(data)
 
@@ -90,7 +92,7 @@ class DataMatchTool:
 	def __init__(self,rulefile,protol):
 		self.protol = protol
 		with open(rulefile,'r') as f:
-			undecoddata = json.dumps(json.load(f))
+			undecoddata = json.dumps(json.load(f),ensure_ascii=False)
 			self.data = json.loads(undecoddata.decode("utf-8"))
 	
 
@@ -102,15 +104,15 @@ class HttpMatcher(DataMatchTool):
 		DataMatchTool.__init__(self,rulefile, "http")
 		uri_array = self.data["rules"]["uri"]
 		for m in uri_array:
-			uri_json= json.loads(json.dumps(m))
+			uri_json = json.loads(json.dumps(m,ensure_ascii=False))
 			self.uri_rule_list.append(uri_json)
 		html_array = self.data["rules"]["html"]
 		for m in html_array:
-			html_json= json.loads(json.dumps(m))
+			html_json= json.loads(json.dumps(m,ensure_ascii=False))
 			self.html_rule_list.append(html_json)
 		xml_array = self.data["rules"]["xml"]
 		for m in xml_array:
-			xml_json= json.loads(json.dumps(m))
+			xml_json= json.loads(json.dumps(m,ensure_ascii=False))
 			self.xml_rule_list.append(xml_json)
 
 	def printRuleList(self):
@@ -132,14 +134,14 @@ class HttpMatcher(DataMatchTool):
 		with open(htmlfile,'r') as f:
 			str = f.read()	
 			for i in range(len(self.html_rule_list)):
-				match = re.search(self.html_rule_list[i]["key"], str)
+				match = re.search(self.html_rule_list[i]["key"].encode('utf-8'), str)
 				if match :
-					return self.html_rule_list[i]
+				 	return self.html_rule_list[i]
 	def matchXML(self,xmlfile):
 		with open(xmlfile,'r') as f:
 			str = f.read()	
 			for i in range(len(self.xml_rule_list)):
-				match = re.search(self.xml_rule_list[i]["key"], str)
+				match = re.search(self.xml_rule_list[i]["key"].encode('utf-8'), str)
 				if match :
 					return self.xml_rule_list[i]
 	def matchALlType(self,source,type):
