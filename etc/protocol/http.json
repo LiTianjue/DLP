@@ -1,0 +1,29 @@
+{
+	"protol" : "http",
+	"server":
+	[
+		{"name":"SSLVPN","port":12080},
+		{"name":"ManagmentServer","port":80}
+	],
+
+	"rules":
+		{
+			"uri":
+			[
+				{"key":"login","msg":"login uri","level":"info"},
+				{"key":"cgi-bin","msg":"调用cgi程序","level":"info"},
+				{"key":"密码","msg":"uri中有关键字密码","level":"info"}
+			],
+			"html":
+			[
+				{"key":"中心","msg":"访问安全管理中心","level":"info"},
+				{"key":"SSLVPN","msg":"访问SSLVPN管理中心","level":"info"}
+			],
+			"xml":
+			[
+				{"key":"soap","msg":"get xml soap","level":"info"}	
+			]
+
+		}
+
+}

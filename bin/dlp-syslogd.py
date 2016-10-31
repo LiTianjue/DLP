@@ -19,6 +19,7 @@ print "开始"
 work_dir = "/home/andy/GitHub/WORK/DLP/"
 dlp_config_file=work_dir+"etc/dlp-syslogd.json"
 http_config_file=work_dir+"etc/protocol/http.json"
+extract_files_dir=work_dir+"log/extract_files/"
 
 
 
@@ -184,7 +185,7 @@ class SyslogServer:
 	def handlerData(self,data):
 		logtype = data["protocol"]
 		logrule = data["rule"]
-		logsource = data["source"]
+		logsource = extract_files_dir+data["source"]
 		del data["source"]
 		logdata = LogHelper(logtype)
 		logdata.updateDict(data)
@@ -192,10 +193,12 @@ class SyslogServer:
 			return False
 
 		if logtype=="http":
-			retdict = g_httpMatcher.matchALlType(logsource, logrule)
-			if retdict:
-				logdata.updateDict(retdict)
-				self.sendLog(logdata)
+		    retdict = g_httpMatcher.matchALlType(logsource, logrule)
+		    if retdict:
+                        logdata.updateDict(retdict)
+                        self.sendLog(logdata)
+                    if (logrule != "uri" and  os.path.exists(logsource)):
+                        os.remove(logsource)
 
 	def sendLog(self,logdata):
 		level = logdata.GetElement("level")

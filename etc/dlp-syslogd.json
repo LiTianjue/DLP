@@ -1,0 +1,10 @@
+{
+	"dlp-sock":"/tmp/dlp.sock",
+	"syslog-ip":"172.16.2.16",
+	"syslog-port":"514",
+	"rule-files":
+	[
+		{"name":"http","file":"/usr/share/DLP/etc/prorocol/http.json"}
+	]
+}
+

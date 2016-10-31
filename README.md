@@ -2,6 +2,7 @@
 
 
 TODO
+
 1. 为bro 脚本写一个处理函数，格式化日志消息结构
 2. 启动脚本同时启动bro　和　dlp-syslogd
 3. 启动脚本兼具启动和停止的功能(start stop restart)
