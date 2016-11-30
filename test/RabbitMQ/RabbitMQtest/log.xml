@@ -1,0 +1,8 @@
+<?xml version="1.0"?> 
+<log> 
+    <protocol>"http"<protocol> 
+    <type>"html"</type> 
+    <src>"192.168.1.100"</src> 
+	<dst>"222.46.20.174 12080"</dst>
+	<key>"ÖØÖÃÃÜÂë"</key> 
+</log> 
