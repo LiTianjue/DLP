@@ -1,0 +1,16 @@
+{
+	"polic_host":"45.76.157.192",
+	"polic_port":"5672",
+	"polic_queue":"IpPortpolice",
+	"polic_user":"asdf",
+	"polic_passwd":"123456",
+
+	"log_host":"45.76.157.192",
+	"log_port":"5672",
+	"log_queue":"IpPortpolice",
+	"log_user":"asdf",
+	"log_passwd":"123456"
+	
+
+
+}

@@ -1,0 +1,8 @@
+{
+	"protocol":"http",
+	"rule":"uri",
+	"src":"172.16.2.198 54343",
+	"dst":"222.46.20.174 11980",
+	"uri":"CheckVersion",
+	"source":"/root/Github/WORK/DLP/managment/index.html"
+}

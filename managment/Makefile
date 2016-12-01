@@ -1,7 +1,20 @@
 CC=gcc
 #CFLAGS=-Wall -O3
 CFLAGS= -g 
-LDFLAGS= -lpthread
+LDFLAGS+= -L./lib 
+LDFLAGS+= -lrabbitmq
+LDFLAGS+= -lmxml
+LDFLAGS+= -lpthread
+LDFLAGS+= -lm
+
+CFLAGS+=-I./inc
+CFLAGS+=-I./include
+CFLAGS+=-I./inc/rabbitmq
+
+# exteral package
+CFLAGS+=-I./inc/rabbitmq-c
+CFLAGS+=-I./inc/xml
+CFLAGS+=-I./inc/json
 
 
 PREFIX=/usr
@@ -10,9 +23,10 @@ BIN_DIR = $(PREFIX)/bin
 SRC_DIR = src
 CFILES = $(wildcard $(SRC_DIR)/*.c)
 CFILES += $(wildcard $(SRC_DIR)/socket/*.c)
+CFILES += $(wildcard $(SRC_DIR)/rabbitmq/*.c)
+CFILES += $(wildcard $(SRC_DIR)/json/*.c)
 OFILES = $(CFILES:%.c=%.o)
 
-CFLAGS+=-I./inc
 
 TARGET=dlpServer
 
