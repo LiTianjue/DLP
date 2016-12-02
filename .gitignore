@@ -1,3 +1,4 @@
 *.log
 .state/*
 *.o
+managment/depends/output

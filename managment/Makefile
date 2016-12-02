@@ -6,6 +6,7 @@ LDFLAGS+= -lrabbitmq
 LDFLAGS+= -lmxml
 LDFLAGS+= -lpthread
 LDFLAGS+= -lm
+LDFLAGS+= -lrt
 
 CFLAGS+=-I./inc
 CFLAGS+=-I./include
