@@ -24,32 +24,14 @@ static int handle_xml_data(uint8_t *input,uint8_t *output);
 static void run(amqp_connection_state_t conn)
 {
 	printf("run !!!!");
-  //uint64_t start_time = now_microseconds();
-  uint64_t start_time = 0;
-  int received = 0;
-  int previous_received = 0;
-  uint64_t previous_report_time = start_time;
-  uint64_t next_summary_time = start_time + SUMMARY_EVERY_US;
 
   amqp_frame_t frame;
+  int received;
 
-  uint64_t now;
 
   for (;;) {
     amqp_rpc_reply_t ret;
     amqp_envelope_t envelope;
-
-    //now = now_microseconds();
-    if (now > next_summary_time) {
-      int countOverInterval = received - previous_received;
-      double intervalRate = countOverInterval / ((now - previous_report_time) / 1000000.0);
-      printf("%d ms: Received %d - %d since last report (%d Hz)\n",
-             (int)(now - start_time) / 1000, received, countOverInterval, (int) intervalRate);
-
-      previous_received = received;
-      previous_report_time = now;
-      next_summary_time += SUMMARY_EVERY_US;
-    }
 
     amqp_maybe_release_buffers(conn);
 	printf("consume............\n");
@@ -58,6 +40,7 @@ static void run(amqp_connection_state_t conn)
 	printf("NORMAL  = %d \n",AMQP_RESPONSE_NORMAL);
 	printf("body len --> [%d]\n",envelope.message.body.len);
 	printf("body : %s\n",envelope.message.body.bytes);
+
 	handle_xml_data(envelope.message.body.bytes,NULL);
 
 
@@ -140,12 +123,10 @@ void *rabbitmq_reader_thread(void *arg)
 	printf("user = %s\n",MQ_USER(read_address));
 	printf("passwd = %s\n",MQ_PASSWD(read_address));
  }
- // char const *hostname="45.76.157.192";
- 
- char *hostname = strdup(MQ_HOST(read_address));
 
 
   int port, status;
+  char const *hostname;
   char const *exchange;
   char const *bindingkey;
   amqp_socket_t *socket = NULL;
@@ -153,12 +134,16 @@ void *rabbitmq_reader_thread(void *arg)
 
   amqp_bytes_t queuename;
 
+  //hostname="45.76.157.192";
+  hostname = MQ_HOST(read_address);
 
-  //hostname = argv[1];
-  port = 5672;
+  //port = 5672;
+  port = MQ_PORT(read_address);
+
   exchange = "amq.direct"; /* argv[3]; */
-  //bindingkey = "test queue"; /* argv[4]; */
-  bindingkey = "IpPortpolice"; /* argv[4]; */
+
+  //bindingkey = "IpPortpolice"; /* argv[4]; */
+  bindingkey = MQ_BINDINGKEY(read_address);
 
   conn = amqp_new_connection();
 
@@ -173,8 +158,13 @@ void *rabbitmq_reader_thread(void *arg)
     die("opening TCP socket");
   }
 	printf("------------>login\n");
+	/*
   die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "test", "test123"),
                     "Logging in");
+					*/
+  die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, MQ_USER(read_address), MQ_PASSWD(read_address)),
+                    "Logging in");
+
   amqp_channel_open(conn, 1);
   die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
@@ -182,9 +172,12 @@ void *rabbitmq_reader_thread(void *arg)
   {
 	
 	amqp_bytes_t q;
-	q.len = strlen("IpPortpolice");
+	//q.len = strlen("IpPortpolice");
+	q.len = strlen(bindingkey);
 	q.bytes = (void *)malloc(q.len);
-	memcpy(q.bytes,"IpPortpolice",q.len);
+
+	//memcpy(q.bytes,"IpPortpolice",q.len);
+	memcpy(q.bytes,bindingkey,q.len);
 
     //amqp_queue_declare_ok_t *r = amqp_queue_declare(conn, 1, amqp_empty_bytes, 0, 0, 0, 1,
     amqp_queue_declare_ok_t *r = amqp_queue_declare(conn, 1, q, 0, 0, 0, 0,

@@ -24,6 +24,7 @@ typedef struct rabbit_thread_info
 #define MQ_PASSWD(t)		((t)->passwd)
 
 void *rabbitmq_reader_thread(void *arg);
+void *rabbitmq_sender_thread(void *arg);
 
 extern mq_thread_info_t *read_address;
 extern mq_thread_info_t *log_address;
