@@ -1,7 +1,7 @@
 {
 	"polic_host":"45.76.157.192",
 	"polic_port":"5672",
-	"polic_queue":"IpPortpolice",
+	"polic_queue":"IpPort",
 	"polic_user":"asdf",
 	"polic_passwd":"123456",
 

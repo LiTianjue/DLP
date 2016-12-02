@@ -13,7 +13,7 @@ connection = pika.BlockingConnection(pika.ConnectionParameters(host="45.76.157.1
 
 channel = connection.channel()
 
-channel.queue_declare(queue='IpPortpolice')
+channel.queue_declare(queue='IpPort')
 
 #xml_t = creatXML.XmlHelper()
 #data = xml_t.getData()
@@ -24,7 +24,7 @@ channel.basic_publish(exchange='',
                     body="Hello World!")
 '''
 channel.basic_publish(exchange='',
-                    routing_key='IpPortpolice',
+                    routing_key='IpPort',
                     body=data)
 
 print "[x] Sent 'hello world' !"

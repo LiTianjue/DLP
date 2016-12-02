@@ -290,6 +290,7 @@ void *keywords_fetch_thread(void *arg)
 	printf("cmdline [%s]\n",cmdline);
 	//ret = system("grep -E '大写字母&李天爵' index.html 1>/dev/null");
 	ret = system(cmdline);
+
 	if(ret == 0)
 	{
 		printf("key words is find\n");
@@ -298,13 +299,9 @@ void *keywords_fetch_thread(void *arg)
 	{
 		printf("key works not find\n");
 	}
-	//[1] 从sock 中读取文件信息
-	//[2] 从data中读取关键字信息(有锁)
-	//[3] 进行关键字匹配
-	//[4] 得到匹配结果并组织成xml格式信息发送到RabbitMQ客户端发送到相应的队列
-	//[5] 删除匹配过的文件
-	//[6] 线程退出
-	//
+	//删除匹配过的文件
+	sprintf(cmdline,"rm -f %s\n",source_file);
+	system(cmdline);
 	
 	//printf("src [%s]\n",src_address);
 	//printf("dst [%s]\n",dst_address);
@@ -313,12 +310,13 @@ void *keywords_fetch_thread(void *arg)
 		char log_info[2048];
 		sprintf(log_info,"{\"src\":%s ,\"dst\":%s}",src_address,dst_address);
 		printf("send log :\n %s \n",log_info);
-		//发送日志消息
+		//发送日志消息,阻塞发送
+		rabbitmq_sender_thread((void *)&log_info);
+		printf("send log done.\n");
 	}
+
+
 	
-	//删除匹配过的文件
-	sprintf(cmdline,"rm -f %s\n",source_file);
-	system(cmdline);
 	
 	pthread_exit(NULL);
 }
