@@ -26,7 +26,7 @@ ln -s /usr/local/bro-${VER} /usr/local//bro
 #
 
 cp ${WD}/common/bro_profile.sh /etc/profile.d/bro.sh
-suorce /etc/profile.d/bro.sh
+source /etc/profile.d/bro.sh
 
 #
 ## Cleanup, so docker-squash can do it's thing
