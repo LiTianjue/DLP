@@ -48,13 +48,13 @@ event http_request(c: connection,method:string, original_URL:string,
 		#system(fmt("./url_check.sh \" %s \"  \" %s \"  ",original_URL,c$id));
 		#print "----------------------------";
 		
-		local src:string =fmt("%s %d",c$id$orig_h,port_to_count(c$id$orig_p));
-		local dst:string =fmt("%s %d",c$id$resp_h,port_to_count(c$id$resp_p));
+		#local src:string =fmt("%s %d",c$id$orig_h,port_to_count(c$id$orig_p));
+		#local dst:string =fmt("%s %d",c$id$resp_h,port_to_count(c$id$resp_p));
 
 		#print src;
 		#print dst;
-		local msg:string = formatMsg("http","uri",src,dst,original_URL,original_URL);
-		sendlog(msg);
+		#local msg:string = formatMsg("http","uri",src,dst,original_URL,original_URL);
+		#sendlog(msg);
 
 #print "from:",c$id$orig_h,port_to_count(c$id$orig_p),"to:",c$id$resp_h,port_to_count(c$id$resp_p);
 		#print "URI:",original_URL;

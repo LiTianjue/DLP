@@ -20,6 +20,7 @@
 #include "json_handler.h"
 
 #define DEFAULT_CONFIG_FILE	"/root/Github/WORK/DLP/managment/etc/dlp_config.json"
+static const char *bro_prefix = "/tmp/bro/extract_files";
 
 
 /*----多个线程共享的全局变量--------------------------------------*/
@@ -286,10 +287,14 @@ void *keywords_fetch_thread(void *arg)
 	GLOBAL_UNLOCK(g_info);
 
 	char cmdline[1024];
-	sprintf(cmdline,"grep -E '%s' %s 1>/dev/null",key,source_file);
+	sprintf(cmdline,"grep -E '%s' %s/%s 1>/dev/null",key,bro_prefix,source_file);
 	printf("cmdline [%s]\n",cmdline);
 	//ret = system("grep -E '大写字母&李天爵' index.html 1>/dev/null");
-	ret = system(cmdline);
+	
+	if(strlen(key)>0)
+		ret = system(cmdline);
+	else
+		ret = -1;
 
 	if(ret == 0)
 	{
@@ -300,7 +305,8 @@ void *keywords_fetch_thread(void *arg)
 		printf("key works not find\n");
 	}
 	//删除匹配过的文件
-	sprintf(cmdline,"rm -f %s\n",source_file);
+	sprintf(cmdline,"rm -f %s/%s\n",bro_prefix,source_file);
+	//printf("cmdline :%s\n",cmdline);
 	system(cmdline);
 	
 	//printf("src [%s]\n",src_address);

@@ -1,11 +1,11 @@
 {
-	"polic_host":"45.76.157.192",
+	"polic_host":"45.32.102.24",
 	"polic_port":"5672",
-	"polic_queue":"IpPort",
+	"polic_queue":"sensitive_word",
 	"polic_user":"asdf",
 	"polic_passwd":"123456",
 
-	"log_host":"45.76.157.192",
+	"log_host":"45.32.102.24",
 	"log_port":"5672",
 	"log_queue":"IpPortpolice",
 	"log_user":"asdf",

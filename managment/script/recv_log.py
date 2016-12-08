@@ -9,7 +9,7 @@ def callback(ch,method,properties,body):
     #print "[x] Received %r" % (body,)
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(
-        host='45.76.157.192',virtual_host="/", credentials=pika.PlainCredentials("asdf", "123456")))
+        host='45.32.102.24',virtual_host="/", credentials=pika.PlainCredentials("asdf", "123456")))
 
 channel = connection.channel()
 
