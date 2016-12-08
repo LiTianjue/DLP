@@ -4,9 +4,9 @@
 @load base/protocols/http
 @load base/bif
 
-redef capture_filters += {
-	["http-request"] = "tcp port 12080"
-};
+#redef capture_filters += {
+#	["http-request"] = "tcp port 12080"
+#};
 
 
 global mime_to_ext: table[string] of string = {

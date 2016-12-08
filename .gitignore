@@ -2,3 +2,4 @@
 .state/*
 *.o
 managment/depends/output
+managment/lib
