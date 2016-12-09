@@ -27,6 +27,7 @@ char send_log_cmd[128] = {'\0'};
 /*----多个线程共享的全局变量--------------------------------------*/
 prog_info_t *g_info = NULL;
 
+int g_debug = 0;
 
 void *keywords_fetch_thread(void *arg);
 
@@ -34,7 +35,6 @@ char *config_path="/tmp/dlp.config";			//获取RabbitMQ上的配置信息(关键
 char *bro_path="/tmp/dlp.sock";					//获取bro截取到的文件
 
 char *log_path="/tmp/dlp.log";					//用于发送报警信息的RabbitMQ
-
 
 typedef struct _server_fds
 {	
@@ -61,16 +61,20 @@ mq_thread_info_t *log_address;		//发送消息
 int main(int argc,char *argv[])
 {
 	//init pararms 读取配置文件
+
+
 #if 1
 	read_address = (mq_thread_info_t *)malloc(sizeof(mq_thread_info_t));
 	log_address = (mq_thread_info_t *)malloc(sizeof(mq_thread_info_t));
-	printf("argc = %d\n",argc);
 	JSON_INFO *cfg_info = NULL;
 	if(argc >=2)
 		cfg_info = json_ParseFile(argv[1]);
 	else
 		cfg_info = json_ParseFile(DEFAULT_CONFIG_FILE);
 		
+	if(argc >=3)
+		g_debug = 1;
+	
 
 	if(cfg_info != NULL)
 	{
@@ -187,7 +191,6 @@ int main(int argc,char *argv[])
 		FD_SET(config_sock,&(serverfds.read_fds));	//添加监听服务
 		FD_SET(bro_sock,&(serverfds.read_fds));	//添加监听服务
 	
-		fprintf(stderr,"---- select ----\n");
 		//ret = select(FD_SETSIZE,&(serverfds.read_fds),NULL,NULL,NULL);
 		ret = select(config_sock>bro_sock?config_sock+1:bro_sock+1,&(serverfds.read_fds),NULL,NULL,NULL);
 		if(ret < 0)
@@ -202,7 +205,7 @@ int main(int argc,char *argv[])
 		if(FD_ISSET(config_sock,&(serverfds.read_fds)))
 		{
 			new_sock = accept(config_sock,NULL,NULL);
-			fprintf(stderr,"[ * ] CONFIG\n");
+			//fprintf(stderr,"[ * ] CONFIG\n");
 			if(new_sock < 0)
 			{
 				continue;
@@ -221,7 +224,10 @@ int main(int argc,char *argv[])
 		if(FD_ISSET(bro_sock,&(serverfds.read_fds)))
 		{
 			new_sock = accept(bro_sock,NULL,NULL);
-			fprintf(stderr,"[ * ] FILE\n");
+
+			if(g_debug)
+				fprintf(stderr,"[ * ]  FILE\n");
+
 			if(new_sock < 0)
 			{
 				continue;
@@ -249,7 +255,8 @@ int main(int argc,char *argv[])
 void *keywords_fetch_thread(void *arg)
 {
 	pthread_detach(pthread_self());
-	fprintf(stderr,"\t\tdo pthread work.\n");
+	if(g_debug)
+		fprintf(stderr,"----> key search  pthread work.\n");
 
 	thread_info_t *info = (thread_info_t *)(arg);
 	int sock = info->usock;
@@ -257,10 +264,10 @@ void *keywords_fetch_thread(void *arg)
 	char buff[2048];	//json格式的协议信息
 						//地址信息，规则，文件名等
 	read(sock,buff,2048);
-	printf("\t\tread data %s\n",buff);
+	if(g_debug)
+		printf("\t\tread data %s\n",buff);
 	close(sock);
 
-	printf("------parse json----------\n");
 	char source_file[512] = {'\0'};
 	char src_address[32] = {'\0'};
 	char dst_address[32] = {'\0'};
@@ -279,10 +286,12 @@ void *keywords_fetch_thread(void *arg)
 	move_string_common(src_address);
 	move_string_common(dst_address);
 
-	printf("file [%s]\n",source_file);
+	if(g_debug)
+		printf("file [%s]\n",source_file);
 
 	json_Delete(jinfo);
-	printf("------parse done----------\n");
+	if(g_debug)
+		printf("------parse done----------\n");
 	
 	int ret = 0;
 	char key[MAX_KEY_LEN];
@@ -292,7 +301,9 @@ void *keywords_fetch_thread(void *arg)
 
 	char cmdline[1024];
 	sprintf(cmdline,"grep -E '%s' %s/%s 1>/dev/null",key,bro_prefix,source_file);
-	printf("cmdline [%s]\n",cmdline);
+
+	if(g_debug)
+		printf("cmdline [%s]\n",cmdline);
 	
 	if(strlen(key)>0)
 		ret = system(cmdline);
@@ -301,11 +312,13 @@ void *keywords_fetch_thread(void *arg)
 
 	if(ret == 0)
 	{
-		printf("key words is find\n");
+		if(g_debug)
+			printf("key words is find\n");
 	}
 	else
 	{
-		printf("key works not find\n");
+		if(g_debug)
+			printf("key works not find\n");
 	}
 	//删除匹配过的文件
 	sprintf(cmdline,"rm -f %s/%s",bro_prefix,source_file);
@@ -324,8 +337,11 @@ void *keywords_fetch_thread(void *arg)
 		sprintf(cmdline,"%s \" {\\\"src\\\":\\\"%s\\\" ,\\\"dst\\\":\\\"%s\\\"}\"",send_log_cmd,src_address,dst_address);
 	
 		system(cmdline);
-		printf("sendlog [%s]\n",cmdline);
-		printf("send log done.\n");
+		if(g_debug)
+		{
+			printf("sendlog [%s]\n",cmdline);
+			printf("send log done.\n");
+		}
 	}
 
 

@@ -15,6 +15,7 @@ typedef struct _prog_info_g
 
 
 extern prog_info_t *g_info;
+extern int g_debug;
 
 static inline void GLOBAL_LOCK(prog_info_t* info)
 {

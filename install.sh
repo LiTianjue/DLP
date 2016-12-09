@@ -12,7 +12,8 @@ make install
 cp ${WD}/bin/startDLP_env.sh /usr/bin/startDLP.sh
 
 
-cp ${WD}/bin/SetEnv/dlp_profile.sh /etc/profile.d/bro.sh
+cp ${WD}/bin/SetEnv/dlp_profile.sh /etc/profile.d/dlp.sh
+source /etc/profile.d/dlp.sh
 
 
 mkdir -p ${INSTALL_ROOT}

@@ -23,7 +23,6 @@ static int handle_xml_data(uint8_t *input,uint8_t *output);
 
 static void run(amqp_connection_state_t conn)
 {
-	printf("run !!!!");
 
   amqp_frame_t frame;
   int received;
@@ -34,12 +33,14 @@ static void run(amqp_connection_state_t conn)
     amqp_envelope_t envelope;
 
     amqp_maybe_release_buffers(conn);
-	printf("consume............\n");
+	//printf("consume............\n");
     ret = amqp_consume_message(conn, &envelope, NULL, 0);
-	printf("ret type  = %d \n",ret.reply_type);
-	printf("NORMAL  = %d \n",AMQP_RESPONSE_NORMAL);
-	printf("body len --> [%d]\n",envelope.message.body.len);
-	printf("body : %s\n",envelope.message.body.bytes);
+	if(0) {
+		printf("ret type  = %d \n",ret.reply_type);
+		printf("NORMAL  = %d \n",AMQP_RESPONSE_NORMAL);
+		printf("body len --> [%d]\n",envelope.message.body.len);
+		printf("body : %s\n",envelope.message.body.bytes);
+	}
 
 	handle_xml_data(envelope.message.body.bytes,NULL);
 
@@ -115,8 +116,9 @@ static void run(amqp_connection_state_t conn)
 
 void *rabbitmq_reader_thread(void *arg)
 {
- if(1)
+ if(g_debug)
  {
+	printf("receive key from:\n");
 	printf("host = %s\n",MQ_HOST(read_address));
 	printf("port = %d\n",MQ_PORT(read_address));
 	printf("bindingkey = %s\n",MQ_BINDINGKEY(read_address));
@@ -152,12 +154,12 @@ void *rabbitmq_reader_thread(void *arg)
     die("creating TCP socket");
   }
 
-	printf("------------>opening\n");
+	//printf("------------>opening\n");
   status = amqp_socket_open(socket, hostname, port);
   if (status) {
     die("opening TCP socket");
   }
-	printf("------------>login\n");
+	//printf("------------>login\n");
 	/*
   die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "test", "test123"),
                     "Logging in");
@@ -219,7 +221,8 @@ void *rabbitmq_reader_thread(void *arg)
 static int handle_xml_data(uint8_t *input,uint8_t *output)
 {
 	char ref[512] = {'\0'};
-	printf("go to handle xml data.\n");
+	if(g_debug)
+		printf("go to handle xml data.\n");
 	mxml_node_t *tree,*node;
 	mxml_node_t *value;
 
@@ -236,7 +239,10 @@ static int handle_xml_data(uint8_t *input,uint8_t *output)
 		 //将数据组织成正则表达式
 		value=node->child;
 		if(value->type == 4)
-			printf("Key Word :[%s]\n",value->value.text.string);
+		{
+			if(g_debug)
+				printf("Get Key Word :[%s]\n",value->value.text.string);
+		}
 		//要去除关键字的"号
 		char word[128]={'\0'};
 		strcpy(word,value->value.text.string);
@@ -247,7 +253,8 @@ static int handle_xml_data(uint8_t *input,uint8_t *output)
 		strcat(ref,"|");
 	 }
 	ref[strlen(ref)-1]='\0';
-	 printf("ref = [%s]\n",ref);
+	if(g_debug)
+		printf("ref = [%s]\n",ref);
 
 	//-- update keyword
 	 GLOBAL_LOCK(g_info);
