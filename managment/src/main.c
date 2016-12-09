@@ -276,8 +276,8 @@ void *keywords_fetch_thread(void *arg)
 	}
 
 	move_string_common(source_file);
-	//move_string_common(src_address);
-	//move_string_common(dst_address);
+	move_string_common(src_address);
+	move_string_common(dst_address);
 
 	printf("file [%s]\n",source_file);
 
@@ -293,7 +293,6 @@ void *keywords_fetch_thread(void *arg)
 	char cmdline[1024];
 	sprintf(cmdline,"grep -E '%s' %s/%s 1>/dev/null",key,bro_prefix,source_file);
 	printf("cmdline [%s]\n",cmdline);
-	//ret = system("grep -E '大写字母&李天爵' index.html 1>/dev/null");
 	
 	if(strlen(key)>0)
 		ret = system(cmdline);
@@ -309,7 +308,7 @@ void *keywords_fetch_thread(void *arg)
 		printf("key works not find\n");
 	}
 	//删除匹配过的文件
-	sprintf(cmdline,"rm -f %s/%s\n",bro_prefix,source_file);
+	sprintf(cmdline,"rm -f %s/%s",bro_prefix,source_file);
 	//printf("cmdline :%s\n",cmdline);
 	system(cmdline);
 	
@@ -322,7 +321,7 @@ void *keywords_fetch_thread(void *arg)
 		//发送日志消息,阻塞发送
 		//rabbitmq_sender_thread((void *)&log_info);
 		
-		sprintf(cmdline,"%s \"{\"src\":%s ,\"dst\":%s}\"",send_log_cmd,src_address,dst_address);
+		sprintf(cmdline,"%s \" {\\\"src\\\":\\\"%s\\\" ,\\\"dst\\\":\\\"%s\\\"}\"",send_log_cmd,src_address,dst_address);
 	
 		system(cmdline);
 		printf("sendlog [%s]\n",cmdline);
