@@ -19,10 +19,11 @@
 #include "common.h"
 #include "json_handler.h"
 
-#define DEFAULT_CONFIG_FILE	"/root/Github/WORK/DLP/managment/etc/dlp_config.json"
+#define DEFAULT_CONFIG_FILE	"/usr/local/dlp/etc/dlp_config.json"
 static const char *bro_prefix = "/tmp/bro/extract_files";
 
 
+char send_log_cmd[128] = {'\0'};
 /*----多个线程共享的全局变量--------------------------------------*/
 prog_info_t *g_info = NULL;
 
@@ -132,6 +133,9 @@ int main(int argc,char *argv[])
 #endif
 
 	//
+	sprintf(send_log_cmd,"amqp-publish -r %s --server=%s:%d --username=%s --password=%s -b ",MQ_BINDINGKEY(log_address),MQ_HOST(log_address),MQ_PORT(log_address),MQ_USER(log_address),MQ_PASSWD(log_address));
+	//printf("The cmd is %s\n",send_log_cmd);
+	
 	//初始化一个全局变量用于使用和更新关键字
 	g_info = (prog_info_t*) malloc(sizeof(prog_info_t));
 	MUTEX_SETUP(g_info->lock);
@@ -313,11 +317,15 @@ void *keywords_fetch_thread(void *arg)
 	//printf("dst [%s]\n",dst_address);
 	if(ret == 0)
 	{
-		char log_info[2048];
-		sprintf(log_info,"{\"src\":%s ,\"dst\":%s}",src_address,dst_address);
-		printf("send log :\n %s \n",log_info);
+		//char log_info[512];
+		//sprintf(log_info,"{\"src\":%s ,\"dst\":%s}",src_address,dst_address);
 		//发送日志消息,阻塞发送
-		rabbitmq_sender_thread((void *)&log_info);
+		//rabbitmq_sender_thread((void *)&log_info);
+		
+		sprintf(cmdline,"%s \"{\"src\":%s ,\"dst\":%s}\"",send_log_cmd,src_address,dst_address);
+	
+		system(cmdline);
+		printf("sendlog [%s]\n",cmdline);
 		printf("send log done.\n");
 	}
 

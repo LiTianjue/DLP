@@ -46,6 +46,8 @@ install: $(TARGET)
 	@echo "installing $(TARGET) to '$(BIN_DIR)'"
 	@install -d -m 755 $(BIN_DIR)
 	@install -m 755 $(TARGET) $(BIN_DIR)
+	@mkdir -p /usr/local/dlp
+	@cp -r etc/ /usr/local/dlp/etc/
 
 
 clean:

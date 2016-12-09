@@ -1,4 +1,4 @@
-export DLP_WORK_DIR=/root/Github/WORK/DLP
+export DLP_WORK_DIR=/usr/local/dlp
 
 export DLP_RULE_DIR=${DLP_WORK_DIR}/rules
 
